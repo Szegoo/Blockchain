@@ -1,6 +1,7 @@
 #include <iostream>
 #include "sha256.h"
 #include <time.h>
+#include <math.h>
 using std::string;
 using std::cout;
 using std::endl;
@@ -24,7 +25,7 @@ class Transaction {
 };
 class Block {
     public:
-        int nonce;
+        long nonce;
         int index;
         int timestamp;
         string prevHash;
@@ -32,12 +33,21 @@ class Block {
         Transaction transaction;
         Block(int _index, string _prevHash,
         Transaction _transaction) {
+            srand(time(0));
             time_t seconds;
             seconds = time(NULL);
-            index = index;
+            index = _index;
             timestamp = seconds;
             prevHash = _prevHash;
+            nonce = rand();
             transaction = _transaction;
+        }
+        void displayBlock() {
+            cout << "Block #" << index << endl;
+            cout << "-hash: " << hash << endl;
+            cout << "-prevHash: " << prevHash << endl;
+            cout << "-nonce: " << nonce << endl;
+            cout << "-timestamp: " << timestamp << endl;
         }
         Block(){}
 };
@@ -62,9 +72,11 @@ class Blockchain {
             blocks[lastBlock].timestamp = 0;
             blocks[lastBlock].index = 0;
         }
-        void addBlock(Block block) {
+        void addBlock(Transaction transaction) {
             lastBlock++;
-            blocks[lastBlock] = block;
+            Block newBlock(lastBlock, blocks[lastBlock-1].hash,
+            transaction);
+            blocks[lastBlock] = newBlock;
             mine(blocks[lastBlock].nonce);
         }
         void mine(uint nonce) {
@@ -73,6 +85,7 @@ class Blockchain {
             while(true) {
                 string hash = createHash(blocks[lastBlock], solution);
                 if(hash.substr(0, 4) == "0000") {
+                    blocks[lastBlock].hash = hash;
                     cout << "Solution: " << std::to_string(solution) << endl;
                     cout << "Hash: " << hash << endl;
                     cout << "Substring: " << hash.substr(0, 4) << endl;
@@ -85,8 +98,8 @@ class Blockchain {
 int main () {
     Transaction myTransaction("fd0lxjklfdso", "xx00xwlf8",
     5, "x0fjnldfxz");
-    Block myBlock(1, "s0xy2hujsd", myTransaction);
     Blockchain myBlockchain(2);
-    myBlockchain.addBlock(myBlock);
+    myBlockchain.addBlock(myTransaction);
+    myBlockchain.blocks[1].displayBlock();
     return 0;
 }
