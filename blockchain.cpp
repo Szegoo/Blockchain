@@ -48,6 +48,10 @@ class Block {
             cout << "-prevHash: " << prevHash << endl;
             cout << "-nonce: " << nonce << endl;
             cout << "-timestamp: " << timestamp << endl;
+            cout << "-transaction: " << endl;
+            cout << "--sender: " << transaction.sender << endl;
+            cout << "--reveiver: " << transaction.receiver << endl;
+            cout << "--amount: " << transaction.amount << endl;
         }
         Block(){}
 };
@@ -94,12 +98,19 @@ class Blockchain {
                 solution++;
             }
         }
+        void displayBlocks() {
+            for(int i = 0; i <= lastBlock; i++) {
+                blocks[i].displayBlock();
+            }
+        }
 };
 int main () {
     Transaction myTransaction("fd0lxjklfdso", "xx00xwlf8",
     5, "x0fjnldfxz");
     Blockchain myBlockchain(2);
     myBlockchain.addBlock(myTransaction);
-    myBlockchain.blocks[1].displayBlock();
+    myBlockchain.addBlock(myTransaction);
+    myBlockchain.addBlock(myTransaction);
+    myBlockchain.displayBlocks();
     return 0;
 }
