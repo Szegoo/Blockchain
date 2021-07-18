@@ -1,28 +1,16 @@
 #include <iostream>
+#include <vector>
 #include "sha256.h"
 #include <time.h>
 #include <math.h>
+#include <openssl/rsa.h>
+#include "blockchain.h"
+#include "rsa.hpp"
 using std::string;
 using std::cout;
 using std::endl;
+using std::vector;
 
-string ZERO_HASH = "0000000000000000000000000000000000000000000000000000000000000000";
-
-class Transaction {
-    public:
-        string sender;
-        string receiver;
-        int amount;
-        string signature;
-        Transaction(string _sender, string _receiver,
-        int _amount, string _signature) {
-            sender = _sender;
-            receiver = _receiver;
-            amount = _amount;
-            signature = _signature;
-        }
-        Transaction(){}
-};
 class Block {
     public:
         long nonce;
@@ -66,33 +54,32 @@ string createHash(Block block, int solution = 1) {
 }
 class Blockchain {
     public:
-        Block blocks[1000];
+        vector<Block> blocks;
         unsigned int lastBlock;
         Blockchain(int test) {
             //making the genesis block
             lastBlock = 0;
-            blocks[lastBlock].hash = ZERO_HASH;
-            blocks[lastBlock].prevHash = ZERO_HASH;
-            blocks[lastBlock].timestamp = 0;
-            blocks[lastBlock].index = 0;
+            Transaction firstTransaction(ZERO_HASH, ZERO_HASH, 0,
+            ZERO_HASH);
+            Block genesisBlock(0, ZERO_HASH, firstTransaction);
+            blocks.push_back(genesisBlock);
         }
         void addBlock(Transaction transaction) {
             lastBlock++;
-            Block newBlock(lastBlock, blocks[lastBlock-1].hash,
+            Block newBlock(lastBlock, blocks.at(lastBlock-1).hash,
             transaction);
-            blocks[lastBlock] = newBlock;
-            mine(blocks[lastBlock].nonce);
+            blocks.push_back(newBlock);
+            mine(blocks.at(lastBlock).nonce);
         }
         void mine(uint nonce) {
             cout << "Mining ⛏️" << endl;
             uint solution = 1;
             while(true) {
-                string hash = createHash(blocks[lastBlock], solution);
+                string hash = createHash(blocks.at(lastBlock), solution);
                 if(hash.substr(0, 4) == "0000") {
-                    blocks[lastBlock].hash = hash;
+                    blocks.at(lastBlock).hash = hash;
                     cout << "Solution: " << std::to_string(solution) << endl;
                     cout << "Hash: " << hash << endl;
-                    cout << "Substring: " << hash.substr(0, 4) << endl;
                     break;
                 }
                 solution++;
@@ -100,8 +87,16 @@ class Blockchain {
         }
         void displayBlocks() {
             for(int i = 0; i <= lastBlock; i++) {
-                blocks[i].displayBlock();
+                blocks.at(i).displayBlock();
             }
+        }
+};
+class Wallet {
+    public:
+        string publicKey;
+        string privateKey;
+        Wallet() {
+            createKeys();
         }
 };
 int main () {
