@@ -5,11 +5,13 @@
 #include <math.h>
 #include <openssl/rsa.h>
 #include "blockchain.h"
-#include "rsa.hpp"
+#include <openssl/pem.h>
+#include "saveToDisk.h"
 using std::string;
 using std::cout;
 using std::endl;
 using std::vector;
+using std::to_string;
 
 class Block {
     public:
@@ -40,6 +42,13 @@ class Block {
             cout << "--sender: " << transaction.sender << endl;
             cout << "--reveiver: " << transaction.receiver << endl;
             cout << "--amount: " << transaction.amount << endl;
+        }
+        string ToCSV() {
+            string res = to_string(index) + "," +to_string(nonce)
+            +","+ to_string(timestamp)+","+hash+","+prevHash+
+            ","+transaction.sender+","+transaction.receiver+","
+            +transaction.signature +","+to_string(transaction.amount); 
+            return res;
         }
         Block(){}
 };
@@ -90,13 +99,12 @@ class Blockchain {
                 blocks.at(i).displayBlock();
             }
         }
-};
-class Wallet {
-    public:
-        string publicKey;
-        string privateKey;
-        Wallet() {
-            createKeys();
+        string ToCSV() {
+            string csv = "index,nonce,timestamp,hash,prevhash,sender,receiver,signature,amount\n";
+            for(int i = 0; i <= lastBlock; i++) {
+                csv += blocks.at(i).ToCSV() + '\n';
+            }
+            return csv;
         }
 };
 int main () {
@@ -105,7 +113,8 @@ int main () {
     Blockchain myBlockchain(2);
     myBlockchain.addBlock(myTransaction);
     myBlockchain.addBlock(myTransaction);
-    myBlockchain.addBlock(myTransaction);
     myBlockchain.displayBlocks();
+    string data = myBlockchain.ToCSV();
+    saveToDisk(data);
     return 0;
 }
