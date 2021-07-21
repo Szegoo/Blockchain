@@ -22,15 +22,14 @@ class Block {
         string hash = "";
         Transaction transaction;
         Block(int _index, string _prevHash,
-        Transaction _transaction) {
-            srand(time(0));
+        Transaction _transaction, int _nonce) {
             time_t seconds;
             seconds = time(NULL);
             index = _index;
             timestamp = seconds;
             prevHash = _prevHash;
-            nonce = rand();
             transaction = _transaction;
+            nonce = _nonce;
         }
         void displayBlock() {
             cout << "Block #" << index << endl;
@@ -61,24 +60,32 @@ string createHash(Block block, int solution = 1) {
             std::to_string(block.transaction.amount)
             + std::to_string(solution));
 }
+class Wallet {
+    //working on implementing key generation
+    public: 
+        int nonce = 1;
+        string pubKey = ZERO_HASH;
+        string privKey = ZERO_HASH;
+};
 class Blockchain {
     public:
         vector<Block> blocks;
         unsigned int lastBlock;
-        Blockchain(int test) {
+        Blockchain() {
             //making the genesis block
             lastBlock = 0;
             Transaction firstTransaction(ZERO_HASH, ZERO_HASH, 0,
             ZERO_HASH);
-            Block genesisBlock(0, ZERO_HASH, firstTransaction);
+            Block genesisBlock(0, ZERO_HASH, firstTransaction, 0);
             blocks.push_back(genesisBlock);
         }
-        void addBlock(Transaction transaction) {
+        void addBlock(Transaction transaction, Wallet *wallet) {
             lastBlock++;
             Block newBlock(lastBlock, blocks.at(lastBlock-1).hash,
-            transaction);
+            transaction, wallet->nonce);
             blocks.push_back(newBlock);
-            mine(blocks.at(lastBlock).nonce);
+            wallet->nonce++;
+            mine(wallet->nonce);
         }
         void mine(uint nonce) {
             cout << "Mining ⛏️" << endl;
@@ -108,11 +115,12 @@ class Blockchain {
         }
 };
 int main () {
-    Transaction myTransaction("fd0lxjklfdso", "xx00xwlf8",
+    Wallet myWallet;
+    Transaction myTransaction(myWallet.pubKey, "xx00xwlf8",
     5, "x0fjnldfxz");
-    Blockchain myBlockchain(2);
-    myBlockchain.addBlock(myTransaction);
-    myBlockchain.addBlock(myTransaction);
+    Blockchain myBlockchain;
+    myBlockchain.addBlock(myTransaction, &myWallet);
+    myBlockchain.addBlock(myTransaction, &myWallet);
     myBlockchain.displayBlocks();
     string data = myBlockchain.ToCSV();
     saveToDisk(data);
