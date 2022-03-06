@@ -1,12 +1,14 @@
 #include <iostream>
 #include <vector>
-#include "sha256.h"
 #include <time.h>
 #include <math.h>
 #include <openssl/rsa.h>
 #include "blockchain.h"
 #include <openssl/pem.h>
+#include "./cryptography/sha256.h"
+#include "./cryptography/rsa.h"
 #include "saveToDisk.h"
+
 using std::string;
 using std::cout;
 using std::endl;
